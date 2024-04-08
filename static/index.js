@@ -49,10 +49,12 @@ async function fetchAndDisplayChannels() {
     const channelDropdown = document.querySelector(".channel-dropdown");
     
     channels.forEach(channel => {
+      if (channel.channelName !== "broadcast") {
       const option = document.createElement("option");
       option.value = channel._id;
       option.textContent = channel.channelName;
       channelDropdown.appendChild(option);
+      }
   });
   } catch (error) {
     console.error('Error fetching channels:', error);

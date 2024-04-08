@@ -152,7 +152,7 @@ flex-direction: column;
   align-items: center;
 }
 .channel-dropdown {
-  height: 25px;
+  height: 32px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
   padding: 5px;
