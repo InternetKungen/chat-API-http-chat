@@ -140,9 +140,9 @@ function reset() {
     //     // Visar chattgränssnittet
     //     showChat();
     // });
-    
-    //LOGIN- "JOIN"-BUTTON-----------
-    submitButton.addEventListener("click", async () => {
+
+    //On joining channel
+    async function joinChannel() {
       const username = usernameElem.value;
       const password = passwordElem.value;
       const channelId = channelDropdown.value; 
@@ -150,6 +150,18 @@ function reset() {
       socket.emit("join", username, password);
       await tokenReceived;
       displayMessages(channelId)
+    }
+
+    //LOGIN- "JOIN"-BUTTON-----------
+    submitButton.addEventListener("click", async () => {
+      // const username = usernameElem.value;
+      // const password = passwordElem.value;
+      // const channelId = channelDropdown.value; 
+
+      // socket.emit("join", username, password);
+      // await tokenReceived;
+      // displayMessages(channelId)
+      joinChannel();
       showChat();
     });
    
@@ -158,11 +170,12 @@ function reset() {
     usernameElem.addEventListener("keydown", async (event) => {
         if (event.key === "Enter") {
             event.preventDefault(); // Förhindra standardbeteendet för formuläret
-            const username = usernameElem.value;
-            const password = passwordElem.value;
-            const channelId = channelDropdown.value; 
-            // await authenticate(username, password); // Lägg till riktigt lösenord här
-            socket.emit("join", username, password, channelId);
+            // const username = usernameElem.value;
+            // const password = passwordElem.value;
+            // const channelId = channelDropdown.value; 
+            // // await authenticate(username, password); // Lägg till riktigt lösenord här
+            // socket.emit("join", username, password, channelId);
+            joinChannel();
             showChat(); 
         }
       });
@@ -171,12 +184,13 @@ function reset() {
     passwordElem.addEventListener("keydown", async (event) => {
       if (event.key === "Enter") {
           event.preventDefault(); // Förhindra standardbeteendet för formuläret
-          const username = usernameElem.value;
-          const password = passwordElem.value;
-          // const channelDropdown = document.getElementById("channel-dropdown");
-    const channelId = channelDropdown.value; 
-          // await authenticate(username, password); // Lägg till riktigt lösenord här
-          socket.emit("join", username, password, channelId);
+    //       const username = usernameElem.value;
+    //       const password = passwordElem.value;
+    //       // const channelDropdown = document.getElementById("channel-dropdown");
+    // const channelId = channelDropdown.value; 
+    //       // await authenticate(username, password); // Lägg till riktigt lösenord här
+    //       socket.emit("join", username, password, channelId);
+          joinChannel();
           showChat(); 
       }
     });
