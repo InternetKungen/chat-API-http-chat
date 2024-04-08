@@ -89,12 +89,11 @@ async function displayMessages(channelId) {
   }
 };
 
-//dölj inloggning och visar chatt-delen av gränsnittet
+//Dölj inloggning och visar chatt-delen av gränsnittet
 function showChat() {
     login.classList.add("hide");
     chat.classList.add("show");
 };
-
 
 //När någon skriver - visa "user is typing.."
 function addTypingMessage(username) {
@@ -129,101 +128,75 @@ function reset() {
     chatMessageInput.value = "";
   }
 
-      // Event listeners för olika användarinteraktioner
+//När man ansluter till en kanal - joining channel
+async function joinChannel() {
+  const username = usernameElem.value;
+  const password = passwordElem.value;
+  const channelId = channelDropdown.value; 
 
-    //   submitButton.addEventListener("click", () => {
-    //     // Hanterar klickhändelsen på submit-knappen
-    //     const username = usernameElem.value;
-    //     // Skickar användarens namn till servern när den loggar in
-    //     socket.emit("join", username);
-        
-    //     // Visar chattgränssnittet
-    //     showChat();
-    // });
+  socket.emit("join", username, password);
+  await tokenReceived;
+  displayMessages(channelId)
+}
 
-    //On joining channel
-    async function joinChannel() {
-      const username = usernameElem.value;
-      const password = passwordElem.value;
-      const channelId = channelDropdown.value; 
+//EVENT LISTENERS - för olika användarinteraktioner
 
-      socket.emit("join", username, password);
-      await tokenReceived;
-      displayMessages(channelId)
+//Login - join-button
+submitButton.addEventListener("click", async () => {
+  joinChannel();
+  showChat();
+});
+
+//Enter-knapp fungerar som join - om markering är i username
+usernameElem.addEventListener("keydown", async (event) => {
+    if (event.key === "Enter") {
+        event.preventDefault(); // Förhindra standardbeteendet för formuläret
+        joinChannel();
+        showChat(); 
     }
+  });
 
-    //LOGIN- "JOIN"-BUTTON-----------
-    submitButton.addEventListener("click", async () => {
-      // const username = usernameElem.value;
-      // const password = passwordElem.value;
-      // const channelId = channelDropdown.value; 
-
-      // socket.emit("join", username, password);
-      // await tokenReceived;
-      // displayMessages(channelId)
+//Enter-knapp fungerar som join - om markering är i password
+passwordElem.addEventListener("keydown", async (event) => {
+  if (event.key === "Enter") {
+      event.preventDefault(); // Förhindra standardbeteendet för formuläret
       joinChannel();
-      showChat();
-    });
-   
-
-    //Enter-knapp fungerar som join - om markering är i username
-    usernameElem.addEventListener("keydown", async (event) => {
-        if (event.key === "Enter") {
-            event.preventDefault(); // Förhindra standardbeteendet för formuläret
-            // const username = usernameElem.value;
-            // const password = passwordElem.value;
-            // const channelId = channelDropdown.value; 
-            // // await authenticate(username, password); // Lägg till riktigt lösenord här
-            // socket.emit("join", username, password, channelId);
-            joinChannel();
-            showChat(); 
-        }
-      });
-
-    //Enter-knapp fungerar som join - om markering är i password
-    passwordElem.addEventListener("keydown", async (event) => {
-      if (event.key === "Enter") {
-          event.preventDefault(); // Förhindra standardbeteendet för formuläret
-    //       const username = usernameElem.value;
-    //       const password = passwordElem.value;
-    //       // const channelDropdown = document.getElementById("channel-dropdown");
-    // const channelId = channelDropdown.value; 
-    //       // await authenticate(username, password); // Lägg till riktigt lösenord här
-    //       socket.emit("join", username, password, channelId);
-          joinChannel();
-          showChat(); 
-      }
-    });
+      showChat(); 
+  }
+});
   
-    //Chat-area - Send-knapp
-    sendButton.addEventListener("click", () => {
-        // Hanterar klickhändelsen på submit-knappen
-        const message = chatMessageInput.value;
-        // Skickar det skrivna meddelandet till servern
-        socket.emit("new message", message);
-      
-        // Återställer innehållet i inputfältet för chattmeddelanden
-        reset();
-      });
+//Chat-area - Send-knapp
+sendButton.addEventListener("click", () => {
+    // Hanterar klickhändelsen på submit-knappen
+    const message = chatMessageInput.value;
+    // Skickar det skrivna meddelandet till servern
+    socket.emit("new message", message);
+  
+    // Återställer innehållet i inputfältet för chattmeddelanden
+    reset();
+  });
 
-    //Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
-    chatMessageInput.addEventListener("keydown", (event) => {
-      // Skickar signal till servern när användaren börjar skriva
-      socket.emit("typing");
-      if (event.key === "Enter") {
-          event.preventDefault(); // Förhindra standardbeteendet för formuläret
-          const message = chatMessageInput.value;
-          socket.emit("new message", message); // Skicka meddelandet till servern
-          reset(); // Återställ inputfältet
-      }
-    });
+//Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
+chatMessageInput.addEventListener("keydown", (event) => {
+  // Skickar signal till servern när användaren börjar skriva
+  socket.emit("typing");
+  if (event.key === "Enter") {
+      event.preventDefault(); // Förhindra standardbeteendet för formuläret
+      const message = chatMessageInput.value;
+      socket.emit("new message", message); // Skicka meddelandet till servern
+      reset(); // Återställ inputfältet
+  }
+});
 
-      chatMessageInput.addEventListener("keyup", () => {
-        // Skickar signal till servern när användaren slutar skriva
-        socket.emit("stop typing");
-      });
+chatMessageInput.addEventListener("keyup", () => {
+  // Skickar signal till servern när användaren slutar skriva
+  socket.emit("stop typing");
+});
 
-      // Skapa en promise som löser när token mottas
+
+// Socket.IO prenumererar på händelser från servern
+
+// Skapa en promise som löser när token mottas
 let tokenReceived = new Promise(resolve => {
   socket.on("token", (token) => {
       // Spara token i klientens minne för framtida användning
@@ -232,38 +205,37 @@ let tokenReceived = new Promise(resolve => {
   });
 });
 
-      socket.on("token", (token) => {
-        // Spara token i klientens minne för framtida användning
-        socket.token = token;
-        console.log(socket.token);
-    });
+socket.on("token", (token) => {
+  // Spara token i klientens minne för framtida användning
+  socket.token = token;
+  console.log(socket.token);
+});
 
-      // Socket.IO prenumererar på händelser från servern
-    socket.on("user joined", (username) => {
-    // Hanterar händelsen: ny användare ansluter + lägger till ett meddelande i chatten
-    const chatMessage = username + " joined the chat";
-    addChatMessage(chatMessage);
-    // Skapa ett nytt <p>-element för det anslutna användarens namn
-    const userParagraph = document.createElement("p");
-    // Ange texten för <p>-elementet till det anslutna användarens namn
-    userParagraph.textContent = username;
-    // Lägg till det skapade <p>-elementet i sektionen för anslutna användare
-    connectedUsersElem.appendChild(userParagraph);
-  });
+  // Socket.IO prenumererar på händelser från servern
+socket.on("user joined", (username) => {
+// Hanterar händelsen: ny användare ansluter + lägger till ett meddelande i chatten
+const chatMessage = username + " joined the chat";
+addChatMessage(chatMessage);
+// Skapa ett nytt <p>-element för det anslutna användarens namn
+const userParagraph = document.createElement("p");
+// Ange texten för <p>-elementet till det anslutna användarens namn
+userParagraph.textContent = username;
+// Lägg till det skapade <p>-elementet i sektionen för anslutna användare
+connectedUsersElem.appendChild(userParagraph);
+});
 
-  socket.on("user disconnected", (username) => {
-    // Hanterar händelsen: ny användare ansluter + lägger till ett meddelande i chatten
-    const chatMessage = username + " disconnected from the chat";
-    addChatMessage(chatMessage);
-     // Loopa igenom alla <p>-element inom sektionen för anslutna användare
-     connectedUsersElem.querySelectorAll("p").forEach((paragraph) => {
-      // Om texten i det aktuella <p>-elementet matchar användarnamnet som kopplar från
-      if (paragraph.textContent === username) {
-          // Ta bort det aktuella <p>-elementet från DOM-trädet
-          paragraph.remove();
-      }
-     })
-
+socket.on("user disconnected", (username) => {
+// Hanterar händelsen: ny användare ansluter + lägger till ett meddelande i chatten
+const chatMessage = username + " disconnected from the chat";
+addChatMessage(chatMessage);
+  // Loopa igenom alla <p>-element inom sektionen för anslutna användare
+  connectedUsersElem.querySelectorAll("p").forEach((paragraph) => {
+  // Om texten i det aktuella <p>-elementet matchar användarnamnet som kopplar från
+  if (paragraph.textContent === username) {
+      // Ta bort det aktuella <p>-elementet från DOM-trädet
+      paragraph.remove();
+  }
+  })
 });
 
   //skicka medelande
