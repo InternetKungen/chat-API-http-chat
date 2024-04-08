@@ -102,17 +102,31 @@ submitButton.addEventListener("click", async () => {
     //     showChat();
     // });
     
+    //Enter-knapp fungerar som join - om markering är i username
     usernameElem.addEventListener("keydown", async (event) => {
         if (event.key === "Enter") {
             event.preventDefault(); // Förhindra standardbeteendet för formuläret
             const username = usernameElem.value;
             const password = passwordElem.value;
-            await authenticate(username, password); // Lägg till riktigt lösenord här
+            // await authenticate(username, password); // Lägg till riktigt lösenord här
             socket.emit("join", username, password);
             showChat(); 
         }
       });
+
+    //Enter-knapp fungerar som join - om markering är i password
+    passwordElem.addEventListener("keydown", async (event) => {
+      if (event.key === "Enter") {
+          event.preventDefault(); // Förhindra standardbeteendet för formuläret
+          const username = usernameElem.value;
+          const password = passwordElem.value;
+          // await authenticate(username, password); // Lägg till riktigt lösenord här
+          socket.emit("join", username, password);
+          showChat(); 
+      }
+    });
   
+    //Chat-area - Send-knapp
     sendButton.addEventListener("click", () => {
         // Hanterar klickhändelsen på submit-knappen
         const message = chatMessageInput.value;
@@ -123,16 +137,17 @@ submitButton.addEventListener("click", async () => {
         reset();
       });
 
-      chatMessageInput.addEventListener("keydown", (event) => {
-        // Skickar signal till servern när användaren börjar skriva
-        socket.emit("typing");
-        if (event.key === "Enter") {
-            event.preventDefault(); // Förhindra standardbeteendet för formuläret
-            const message = chatMessageInput.value;
-            socket.emit("new message", message); // Skicka meddelandet till servern
-            reset(); // Återställ inputfältet
-        }
-      });
+    //Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
+    chatMessageInput.addEventListener("keydown", (event) => {
+      // Skickar signal till servern när användaren börjar skriva
+      socket.emit("typing");
+      if (event.key === "Enter") {
+          event.preventDefault(); // Förhindra standardbeteendet för formuläret
+          const message = chatMessageInput.value;
+          socket.emit("new message", message); // Skicka meddelandet till servern
+          reset(); // Återställ inputfältet
+      }
+    });
 
       chatMessageInput.addEventListener("keyup", () => {
         // Skickar signal till servern när användaren slutar skriva
