@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="/socket.io/socket.io.js" defer></script>
+    <script src="index.js" defer></script>
+  </head>
+  <body>
+    <main class="wrapper">
+      <!--LOGIN-->
+      <section class="login">
+        <input
+          type="text"
+          name=""
+          placeholder="Användarnamn"
+          id="username-input"
+          class="login__input"
+        />
+        <input
+          type="password"
+          name=""
+          placeholder=""
+          id="password-input"
+          class="login__input"
+        />
+        <button id="login-submit" class="login__button">Join</button>
+      </section>
+
+      <!--CHAT SECTION-->
+      <div class="chat hide">
+        <section class="chat-area"></section>
+
+        <secion class="submit-message-area">
+          <input id="chat-message" autocomplete="off" />
+          <p class="typingMessage"></p>
+          <button id="send">Send</button>
+        </secion>
+
+        <section class="connected-users"></section>
+
+        <section class="channels"></section>
+      </div>
+    </main>
+  </body>
+</html>
