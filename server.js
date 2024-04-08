@@ -77,6 +77,9 @@ io.on('connection', (socket) => {
 
         const data = await response.json();
         socket.token = data.token;
+
+        // Skicka token till klienten
+        socket.emit("token", socket.token);
     });
 
     //broadcast - send message
@@ -99,7 +102,7 @@ io.on('connection', (socket) => {
         });
     });
 
-    //channel - send message
+    // //channel - send message
     // socket.on("new message", async (message) => {
     //     const composedMessage = socket.username + ": " + message;
     //     io.emit("send message", composedMessage);
@@ -133,6 +136,9 @@ io.on('connection', (socket) => {
             socket.broadcast.emit('update users', connectedUsers);
         }
     });
+
+    // // Skicka token till klienten när användaren ansluter
+    // socket.emit('token', socket.token);
 });
 
 server.listen(port, () => {

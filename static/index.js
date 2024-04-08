@@ -1,7 +1,7 @@
 let socket = io();
-let token;
+// let token;
 
-// //AUTHENTICATE
+// //AUTHENTICATE - utförs nu i server.js
 // async function authenticate(username, password) {
 //     const response = await fetch('http://localhost:3000/auth/login', {
 //         method: 'POST',
@@ -18,78 +18,115 @@ let token;
 //     token = data.token;
 // }
 
-//LOGIN - användarnamn, password och login-knapp
+//LOGIN - användarnamn, password, channel och login-knapp
 const usernameElem = document.querySelector("#username-input");
 const passwordElem = document.querySelector("#password-input");
+const channelDropdown = document.querySelector(".channel-dropdown");
 const submitButton = document.querySelector('#login-submit')
 
-//LOGIN-BUTTON
-submitButton.addEventListener("click", async () => {
-  const username = usernameElem.value;
-  const password = passwordElem.value;
-  // await authenticate(username, password);
-  socket.emit("join", username, password);
-  showChat();
-});
+//CHAT-MESSAGE - där man skriver in sitt meddelande
+const chatMessageInput = document.querySelector('#chat-message')
+const sendButton = document.querySelector("#send");
 
-  // //där meddelanden skrivs ut
-  // const form = document.querySelector("#form");
-  // const input = document.querySelector("#input");
+//LOGIN-section och CHAT-section, används vid showChat
+const login = document.querySelector(".login");
+const chat = document.querySelector('.chat');
 
-  //där man skriver in sit tmeddelande
-  const chatMessageInput = document.querySelector('#chat-message')
-  const sendButton = document.querySelector("#send");
+//CHAT-AREA
+let chatArea = document.querySelector(".chat-area");
 
-  //const submitButton = document.querySelector('#submitButton');
-  const login = document.querySelector(".login");
-  const chat = document.querySelector('.chat');
-
-  let chatArea = document.querySelector(".chat-area");
-
-  const connectedUsersElem = document.querySelector(".connected-users");
+//CONNECTED USERS
+const connectedUsersElem = document.querySelector(".connected-users");
 
 
-
-   
-    function showChat() {
-        //dölj inloggning och visar chatt-delen av gränsnittet
-        login.classList.add("hide");
-        chat.classList.add("show");
-    };
+//FUNKTIONER
+// Funktion för att hämta kanaler från API och visa dem i klienten
+async function fetchAndDisplayChannels() {
+  try {
+    const response = await fetch('http://localhost:3000/channel');
+    const channels = await response.json();
     
-
-    //när någon skriver -
-    function addTypingMessage(username) {
-        // Lägger till meddelande om att användaren skriver 
-        const typingElem = document.querySelector(".typingMessage");
-        typingElem.innerHTML = username + " is typing";
-    }
+    const channelDropdown = document.querySelector(".channel-dropdown");
     
-    function removeTypingMessage() {
-    // Tar bort meddelandet om att användaren skriver efter 1 sek
+    channels.forEach(channel => {
+      const option = document.createElement("option");
+      option.value = channel._id;
+      option.textContent = channel.channelName;
+      channelDropdown.appendChild(option);
+  });
+  } catch (error) {
+    console.error('Error fetching channels:', error);
+  }
+}
+
+// Anropa funktionen för att hämta och visa kanaler när sidan laddas
+document.addEventListener("DOMContentLoaded", fetchAndDisplayChannels);
+
+//Visa befintliga meddelanden i kanalen
+async function displayMessages(channelId) {
+  try {
+      const response = await fetch(`http://localhost:3000/channel/${channelId}`, {
+          headers: {
+              'Authorization': 'Bearer ' + socket.token
+          }
+      });
+
+      const messages = await response.json();
+      console.log(messages);
+
+      const chatArea = document.querySelector(".chat-area");
+      chatArea.innerHTML = '';
+
+      messages.forEach(message => {
+          const messageElement = document.createElement("p");
+          messageElement.textContent = `${message.createdBy}: ${message.message}`;
+          chatArea.appendChild(messageElement);
+      });
+  } catch (error) {
+      console.error('Error fetching messages:', error);
+  }
+};
+
+//dölj inloggning och visar chatt-delen av gränsnittet
+function showChat() {
+    login.classList.add("hide");
+    chat.classList.add("show");
+};
+
+
+//När någon skriver - visa "user is typing.."
+function addTypingMessage(username) {
+    // Lägger till meddelande om att användaren skriver 
     const typingElem = document.querySelector(".typingMessage");
-    setTimeout(() => {
-        typingElem.innerHTML = " ";
-        }, 1000);
-    } 
+    typingElem.innerHTML = username + " is typing";
+}
 
-    function scrollToBottom() {
-      chatArea.scrollTop = chatArea.scrollHeight;
-    }
+//När någon slutar skriva - ta bort "user is typing.."
+function removeTypingMessage() {
+// Tar bort meddelandet om att användaren skriver efter 1 sek
+const typingElem = document.querySelector(".typingMessage");
+setTimeout(() => {
+    typingElem.innerHTML = " ";
+    }, 1000);
+} 
 
-    function addChatMessage(message) {
-        // Lägger till ett nytt chattmeddelande 
-        let chatMessage = document.createElement("p");
-        chatMessage.innerHTML = message;
-        chatArea.append(chatMessage);
-        scrollToBottom();
-    }
+function scrollToBottom() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
 
-    function reset() {
-        // Återställer innehållet i chattmeddelande-inputfältet
-        chatMessageInput.value = "";
-      }
-    
+function addChatMessage(message) {
+    // Lägger till ett nytt chattmeddelande 
+    let chatMessage = document.createElement("p");
+    chatMessage.innerHTML = message;
+    chatArea.append(chatMessage);
+    scrollToBottom();
+}
+
+function reset() {
+    // Återställer innehållet i chattmeddelande-inputfältet
+    chatMessageInput.value = "";
+  }
+
       // Event listeners för olika användarinteraktioner
 
     //   submitButton.addEventListener("click", () => {
@@ -102,14 +139,28 @@ submitButton.addEventListener("click", async () => {
     //     showChat();
     // });
     
+    //LOGIN- "JOIN"-BUTTON-----------
+    submitButton.addEventListener("click", async () => {
+      const username = usernameElem.value;
+      const password = passwordElem.value;
+      const channelId = channelDropdown.value; 
+
+      socket.emit("join", username, password);
+      await tokenReceived;
+      displayMessages(channelId)
+      showChat();
+    });
+   
+
     //Enter-knapp fungerar som join - om markering är i username
     usernameElem.addEventListener("keydown", async (event) => {
         if (event.key === "Enter") {
             event.preventDefault(); // Förhindra standardbeteendet för formuläret
             const username = usernameElem.value;
             const password = passwordElem.value;
+            const channelId = channelDropdown.value; 
             // await authenticate(username, password); // Lägg till riktigt lösenord här
-            socket.emit("join", username, password);
+            socket.emit("join", username, password, channelId);
             showChat(); 
         }
       });
@@ -120,8 +171,10 @@ submitButton.addEventListener("click", async () => {
           event.preventDefault(); // Förhindra standardbeteendet för formuläret
           const username = usernameElem.value;
           const password = passwordElem.value;
+          // const channelDropdown = document.getElementById("channel-dropdown");
+    const channelId = channelDropdown.value; 
           // await authenticate(username, password); // Lägg till riktigt lösenord här
-          socket.emit("join", username, password);
+          socket.emit("join", username, password, channelId);
           showChat(); 
       }
     });
@@ -154,6 +207,20 @@ submitButton.addEventListener("click", async () => {
         socket.emit("stop typing");
       });
 
+      // Skapa en promise som löser när token mottas
+let tokenReceived = new Promise(resolve => {
+  socket.on("token", (token) => {
+      // Spara token i klientens minne för framtida användning
+      socket.token = token;
+      resolve();  // Löser promise när token mottas
+  });
+});
+
+      socket.on("token", (token) => {
+        // Spara token i klientens minne för framtida användning
+        socket.token = token;
+        console.log(socket.token);
+    });
 
       // Socket.IO prenumererar på händelser från servern
     socket.on("user joined", (username) => {
@@ -198,12 +265,3 @@ submitButton.addEventListener("click", async () => {
     // Hanterar händelsen: någon slutar skriva + tar bort från UI
     removeTypingMessage();
   });
-
-  
-    // form.addEventListener("submit", function (e) {
-    // e.preventDefault();
-    // if (input.value) {
-    //     socket.emit("chat message", input.value);
-    //     input.value = "";
-    // }
-    // });
