@@ -124,21 +124,41 @@ display: flex;
 justify-content: center;
 align-items: center;
 background: linear-gradient(90deg, #efd6d2, #ffdde2 );
-height: 100px;
+height: fit-content;
+padding: 10px;
 width: 400px;
 border: 2px solid var(--border-color);
 border-radius: 10px;
 flex-direction: column;
 }
 
+#password-input,
 #username-input {
+  margin-top: 4px;
   height: 25px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
   padding: 5px;
 }
 
+#password-input:focus,
 #username-input:focus {
+  outline: 2px solid var(--input-color);
+}
+
+.channels {
+  display:flex;
+  flex-direction: row;
+  align-items: center;
+}
+.channel-dropdown {
+  height: 25px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  padding: 5px;
+  margin-left: 8px;
+}
+.channel-dropdown:focus {
   outline: 2px solid var(--input-color);
 }
 
