@@ -170,8 +170,9 @@ passwordElem.addEventListener("keydown", async (event) => {
 sendButton.addEventListener("click", () => {
     // Hanterar klickhändelsen på submit-knappen
     const message = chatMessageInput.value;
+    const channelId = channelDropdown.value;
     // Skickar det skrivna meddelandet till servern
-    socket.emit("new message", message);
+    socket.emit("new message", message, channelId);
   
     // Återställer innehållet i inputfältet för chattmeddelanden
     reset();

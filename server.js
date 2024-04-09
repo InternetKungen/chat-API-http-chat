@@ -124,13 +124,12 @@ io.on('connection', (socket) => {
     });
 
     socket.on("typing", (channelId) => {
-    //   socket.broadcast.emit('is typing', socket.username);
-    // Skicka "is typing"-meddelandet endast till användare i samma kanal
-  socket.to(channelId).emit('is typing', socket.username);
+        // Skicka "is typing"-meddelandet endast till användare i samma kanal
+        socket.to(channelId).emit('is typing', socket.username);
     });
 
     socket.on("stop typing", () => {
-      socket.broadcast.emit("not typing");
+        socket.broadcast.emit("not typing");
     });
 
     socket.on('disconnect', () => {
