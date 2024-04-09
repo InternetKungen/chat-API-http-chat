@@ -85,29 +85,27 @@ io.on('connection', (socket) => {
         socket.join(channelId);
     });
 
-    // //broadcast - send message
-    // socket.on('new message', async (msg) => {
-    //     const composedMessage = socket.username + ": " + msg;
-    //     console.log('message: ' + msg);
-    //     // io.emit('new message', composedMessage);
-    //     io.emit("send message", composedMessage);
+    socket.on("broadcast message", async (message) => {
+        const composedMessage = `${socket.username}: ${message}`;
+        console.log(composedMessage);
 
-    //     // Skicka meddelandet till API:et
-    //     await fetch('http://localhost:3000/broadcast', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'Authorization': 'Bearer ' + socket.token
-    //         },
-    //         body: JSON.stringify({
-    //             message: msg
-    //         })
-    //     });
-    // });
+        io.emit("send message", composedMessage); // Skicka meddelandet till alla anslutna klienter
+        // Skicka meddelandet till API:et
+        await fetch('http://localhost:3000/broadcast', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message
+            })
+        });
+      });
 
     //channel - send message
     socket.on("new message", async (message, channelId) => {
-        const composedMessage = `${socket.username}: ${message}`;
+        const timestamp = new Date().toLocaleTimeString();
+        const composedMessage = `[${timestamp}] ${socket.username}: ${message}`;
         io.to(channelId).emit("send message", composedMessage);
 
         // Skicka meddelandet till API:et

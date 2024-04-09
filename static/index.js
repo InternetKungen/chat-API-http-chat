@@ -81,7 +81,7 @@ async function displayMessages(channelId) {
 
       messages.forEach(message => {
           const messageElement = document.createElement("p");
-          messageElement.textContent = `${message.createdBy}: ${message.message}`;
+          messageElement.textContent = `[${message.createdAtTime}] ${message.createdBy}: ${message.message}`;
           chatArea.appendChild(messageElement);
       });
   } catch (error) {
@@ -188,7 +188,12 @@ chatMessageInput.addEventListener("keydown", (event) => {
       event.preventDefault(); // Förhindra standardbeteendet för formuläret
       const message = chatMessageInput.value;
       const channelId = channelDropdown.value;
+      if (message.startsWith("/broadcast")) {
+        const broadcastMessage = message.substring(11); // Ta bort "/broadcast " från början av meddelandet
+        socket.emit("broadcast message", broadcastMessage); // Skicka meddelandet till servern för sändning
+      } else {
       socket.emit("new message", message, channelId); // Skicka meddelandet till servern
+      }
       reset(); // Återställ inputfältet
   }
 });
