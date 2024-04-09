@@ -160,6 +160,32 @@ io.on('connection', (socket) => {
         }
       });
 
+      // Lyssna efter begäran om att listas kanaler
+    socket.on("list channels", async () => {
+        try {
+            const response = await fetch('http://localhost:3000/channel');
+            const channels = await response.json(); // Ersätt med riktig logik för att hämta kanaler
+            // Skicka listan över kanaler till klienten
+            socket.emit("channel list", channels);
+        } catch (error) {
+            console.error("Error fetching channels:", error);
+            // Hantera eventuella fel här
+        }
+    });
+
+    // socket.on("delete channel", async (channelNumber) => {
+    //     try {
+    //         // Hämta kanalen med motsvarande nummer från databasen eller annan lagringsplats
+    //         const channelToDelete = await fetchChannelByNumberFromDatabase(channelNumber); // Ersätt med riktig logik
+    //         // Ta bort kanalen från databasen eller annan lagringsplats
+    //         await deleteChannelFromDatabase(channelToDelete); // Ersätt med riktig logik
+    //         // Skicka meddelande till alla anslutna klienter att kanalen har tagits bort
+    //         io.emit("channel deleted", channelToDelete.channelName);
+    //     } catch (error) {
+    //         console.error("Error deleting channel:", error);
+    //         // Hantera eventuella fel här
+    //     }
+
     socket.on("typing", (channelId) => {
         // Skicka "is typing"-meddelandet endast till användare i samma kanal
         socket.to(channelId).emit('is typing', socket.username);
