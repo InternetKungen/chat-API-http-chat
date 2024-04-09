@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
 
     sendUserListToClient(socket);
 
-    socket.on("join", async (username, password) => {
+    socket.on("join", async (username, password, channelId) => {
     
         console.log(username + " connected");
         socket.username = username;
@@ -80,6 +80,9 @@ io.on('connection', (socket) => {
 
         // Skicka token till klienten
         socket.emit("token", socket.token);
+
+        // Anslut användaren till rummet för den specifika kanalen
+        socket.join(channelId);
     });
 
     // //broadcast - send message
@@ -105,10 +108,10 @@ io.on('connection', (socket) => {
     //channel - send message
     socket.on("new message", async (message, channelId) => {
         const composedMessage = `${socket.username}: ${message}`;
-        io.emit("send message", composedMessage);
+        io.to(channelId).emit("send message", composedMessage);
 
         // Skicka meddelandet till API:et
-        await fetch(`http://localhost:3000/channel/${channelId}`, { // Ersätt channelId med riktigt id
+        await fetch(`http://localhost:3000/channel/${channelId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

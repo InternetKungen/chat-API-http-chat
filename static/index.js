@@ -134,9 +134,10 @@ async function joinChannel() {
   const password = passwordElem.value;
   const channelId = channelDropdown.value; 
 
-  socket.emit("join", username, password);
+  socket.emit("join", username, password, channelId);
   await tokenReceived;
   displayMessages(channelId)
+
 }
 
 //EVENT LISTENERS - för olika användarinteraktioner
