@@ -191,6 +191,13 @@ chatMessageInput.addEventListener("keydown", (event) => {
       if (message.startsWith("/broadcast")) {
         const broadcastMessage = message.substring(11); // Ta bort "/broadcast " från början av meddelandet
         socket.emit("broadcast message", broadcastMessage); // Skicka meddelandet till servern för sändning
+      } else if (message.startsWith("/createchannel")) {
+        // Extrahera kanalnamn och beskrivning från meddelandet
+        const params = message.split('"');
+        const channelName = params[1];
+        const channelDescription = params[3];
+        // Skicka kanalnamn och beskrivning till servern för att skapa den nya kanalen
+        socket.emit("create channel", channelName, channelDescription, channelId); 
       } else {
       socket.emit("new message", message, channelId); // Skicka meddelandet till servern
       }
