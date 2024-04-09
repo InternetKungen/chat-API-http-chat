@@ -82,43 +82,43 @@ io.on('connection', (socket) => {
         socket.emit("token", socket.token);
     });
 
-    //broadcast - send message
-    socket.on('new message', async (msg) => {
-        const composedMessage = socket.username + ": " + msg;
-        console.log('message: ' + msg);
-        // io.emit('new message', composedMessage);
-        io.emit("send message", composedMessage);
-
-        // Skicka meddelandet till API:et
-        await fetch('http://localhost:3000/broadcast', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + socket.token
-            },
-            body: JSON.stringify({
-                message: msg
-            })
-        });
-    });
-
-    // //channel - send message
-    // socket.on("new message", async (message) => {
-    //     const composedMessage = socket.username + ": " + message;
+    // //broadcast - send message
+    // socket.on('new message', async (msg) => {
+    //     const composedMessage = socket.username + ": " + msg;
+    //     console.log('message: ' + msg);
+    //     // io.emit('new message', composedMessage);
     //     io.emit("send message", composedMessage);
 
     //     // Skicka meddelandet till API:et
-    //     await fetch(`http://localhost:3000/channel/${channelId}`, { // Ersätt channelId med riktigt id
+    //     await fetch('http://localhost:3000/broadcast', {
     //         method: 'POST',
     //         headers: {
     //             'Content-Type': 'application/json',
     //             'Authorization': 'Bearer ' + socket.token
     //         },
     //         body: JSON.stringify({
-    //             message: message
+    //             message: msg
     //         })
     //     });
     // });
+
+    //channel - send message
+    socket.on("new message", async (message, channelId) => {
+        const composedMessage = `${socket.username}: ${message}`;
+        io.emit("send message", composedMessage);
+
+        // Skicka meddelandet till API:et
+        await fetch(`http://localhost:3000/channel/${channelId}`, { // Ersätt channelId med riktigt id
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + socket.token
+            },
+            body: JSON.stringify({
+                message: message
+            })
+        });
+    });
 
     socket.on("typing", () => {
       socket.broadcast.emit('is typing', socket.username);
@@ -137,8 +137,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // // Skicka token till klienten när användaren ansluter
-    // socket.emit('token', socket.token);
 });
 
 server.listen(port, () => {

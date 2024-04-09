@@ -183,7 +183,8 @@ chatMessageInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
       event.preventDefault(); // Förhindra standardbeteendet för formuläret
       const message = chatMessageInput.value;
-      socket.emit("new message", message); // Skicka meddelandet till servern
+      const channelId = channelDropdown.value;
+      socket.emit("new message", message, channelId); // Skicka meddelandet till servern
       reset(); // Återställ inputfältet
   }
 });
