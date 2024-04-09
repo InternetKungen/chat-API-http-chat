@@ -55,6 +55,21 @@ io.on('connection', (socket) => {
 
     sendUserListToClient(socket);
 
+    socket.on("register", async (username, password) => {
+        // Authentisera användaren med API:et
+        const response = await fetch('http://localhost:3000/auth/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password 
+            })
+        });
+        console.log(await response.json());
+    })
+
     socket.on("join", async (username, password, channelId) => {
     
         console.log(username + " connected");

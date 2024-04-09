@@ -109,6 +109,12 @@ function showChat() {
     chat.classList.add("show");
 }
 
+function showLogin() {
+  login.classList.remove("hide");
+  registerSection.remove("show");
+  registerSection.add("hide");
+}
+
 //När någon skriver - visa "user is typing.."
 function addTypingMessage(username) {
     // Lägger till meddelande om att användaren skriver
@@ -161,11 +167,6 @@ submitButton.addEventListener("click", async () => {
     showChat();
 });
 
-//Register - register-button
-registerSectionButton.addEventListener("click", () => {
-    showRegister();
-});
-
 //Enter-knapp fungerar som join - om markering är i username
 usernameElem.addEventListener("keydown", async (event) => {
     if (event.key === "Enter") {
@@ -183,6 +184,18 @@ passwordElem.addEventListener("keydown", async (event) => {
         showChat();
     }
 });
+
+//Login - Register-button - show register menu
+registerSectionButton.addEventListener("click", () => {
+    showRegister();
+});
+
+registerButton.addEventListener("click", () => {
+  const username = registerUsernameElem.value;
+  const password = registerPasswordElem.value;
+  socket.emit("register", username, password);
+  showLogin();
+})
 
 //Chat-area - Send-knapp
 sendButton.addEventListener("click", () => {
