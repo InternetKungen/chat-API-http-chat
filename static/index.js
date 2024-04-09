@@ -241,6 +241,12 @@ chatMessageInput.addEventListener("keydown", (event) => {
           const indexNumber = parseInt(message.split(" ")[1]);
           socket.emit("delete channel", indexNumber);
 
+      }  else if (message.startsWith("/join")) {
+        // Extrahera indexnumret från meddelandet
+        const indexNumber = parseInt(message.split(" ")[1]);
+        const username = usernameElem.value;
+        socket.emit("join channel", indexNumber, username);
+
       } else {
       socket.emit("new message", message, channelId); // Skicka meddelandet till servern
       }
@@ -332,4 +338,12 @@ socket.on("delete channel error", (errorMessage) => {
 socket.on("channel deleted", (indexNumber) => {
   // Uppdatera användargränssnittet eller gör någon annan åtgärd efter borttagning av kanal
   addChatMessage(`Channel ${indexNumber} deleted successfully`);
+});
+
+socket.on("display messages", (channelId) => {
+  displayMessages(channelId);
+});
+
+socket.on("update channel dropdown", (channelId) => {
+  channelDropdown.value = channelId;
 });

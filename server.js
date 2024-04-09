@@ -56,7 +56,6 @@ io.on('connection', (socket) => {
     sendUserListToClient(socket);
 
     socket.on("register", async (username, password) => {
-        // Authentisera användaren med API:et
         const response = await fetch('http://localhost:3000/auth/register', {
             method: 'POST',
             headers: {
@@ -229,6 +228,40 @@ io.on('connection', (socket) => {
             console.error("Error deleting channel:", error);
             // Skicka felmeddelande till klienten om något går fel
             socket.emit("delete channel error", error.message);
+        }
+    });
+
+    socket.on("join channel", async (indexNumber) => {
+        try {
+            const response = await fetch('http://localhost:3000/channel');
+            const channels = await response.json(); 
+          
+            let channelsListed = []; // Skapa en tom lista för att lagra index och kanal-ID
+    
+            // Loopa igenom kanalerna och skapa index samt spara kanal-ID i en lista
+            channels.forEach((channel, index) => {
+                if (channel.channelName !== "broadcast") {
+                    channelsListed.push({ index: index + 1, channelId: channel._id });
+                }
+            });
+    
+            // Hitta kanalens ID med hjälp av det angivna indexnumret
+            const channelToJoin = channelsListed.find(channel => channel.index === indexNumber);
+    
+            if (!channelToJoin) {
+                throw new Error("Channel not found");
+            }
+
+            socket.join(channelToJoin.channelId);
+    
+                    // Skicka meddelandet till klienten för att uppdatera kanalen
+            socket.emit("display messages", channelToJoin.channelId);
+            // Uppdatera värdet för aktuell kanal i dropdown-menyn
+            socket.emit("update channel dropdown", channelToJoin.channelId);
+        } catch (error) {
+            console.error("Error joining channel:", error);
+            // Skicka felmeddelande till klienten om något går fel
+            socket.emit("join channel error", error.message);
         }
     });
     
