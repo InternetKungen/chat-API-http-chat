@@ -179,8 +179,10 @@ sendButton.addEventListener("click", () => {
 
 //Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
 chatMessageInput.addEventListener("keydown", (event) => {
+  //Hämta aktuell kanal-id
+  const channelId = channelDropdown.value; 
   // Skickar signal till servern när användaren börjar skriva
-  socket.emit("typing");
+  socket.emit("typing", channelId);
   if (event.key === "Enter") {
       event.preventDefault(); // Förhindra standardbeteendet för formuläret
       const message = chatMessageInput.value;
