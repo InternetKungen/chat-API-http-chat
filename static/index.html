@@ -1,52 +1,51 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
-    <link rel="stylesheet" href="style.css" />
-    <script src="/socket.io/socket.io.js" defer></script>
-    <script src="index.js" defer></script>
-  </head>
-  <body>
-    <main class="wrapper">
-      <!--LOGIN-->
-      <section class="login">
-        <input
-          type="text"
-          name=""
-          placeholder="Användarnamn"
-          id="username-input"
-          class="login__input"
-        />
-        <input
-          type="password"
-          name=""
-          placeholder="Lösenord"
-          id="password-input"
-          class="login__input"
-        />
+    <head>
+        <title>Socket.IO chat</title>
+        <link rel="stylesheet" href="style.css" />
+        <script src="/socket.io/socket.io.js" defer></script>
+        <script src="index.js" defer></script>
+    </head>
+    <body>
+        <main class="wrapper">
+            <!--LOGIN-->
+            <section class="login">
+                <input type="text" name="" placeholder="Användarnamn" id="username-input" class="login__input" />
+                <input type="password" name="" placeholder="Lösenord" id="password-input" class="login__input" />
 
-        <section class="channels">
-          <p>Channels:</p>
-          <select class="channel-dropdown">
-            <!-- Kanaler läggs till här dynamiskt från JavaScript -->
-          </select>
-        </section>
+                <section class="channels">
+                    <p>Channels:</p>
+                    <select class="channel-dropdown">
+                        <!-- Kanaler läggs till här dynamiskt från JavaScript -->
+                    </select>
+                </section>
 
-        <button id="login-submit" class="login__button">Join</button>
-      </section>
+                <button id="login-submit" class="login__button">Join</button>
+                <button id="register-section-button">Register</button>
+            </section>
 
-      <!--CHAT SECTION-->
-      <div class="chat hide">
-        <section class="chat-area"></section>
+            <!--REGISTER SECTION-->
 
-        <secion class="submit-message-area">
-          <input id="chat-message" autocomplete="off" />
-          <p class="typingMessage"></p>
-          <button id="send">Send</button>
-        </secion>
+            <section class="register hide">
+                <section class="registerWrapper">
+                    <input type="text" class="register_input" placeholder="Användarnamn" id="register-username-input" />
+                    <input type="password" class="register_input" placeholder="Lösenord" id="register-password-input" />
+                    <button id="register_submit" class="register_button">Register</button>
+                </section>
+            </section>
 
-        <section class="connected-users"></section>
-      </div>
-    </main>
-  </body>
+            <!--CHAT SECTION-->
+            <div class="chat hide">
+                <section class="chat-area"></section>
+
+                <secion class="submit-message-area">
+                    <input id="chat-message" autocomplete="off" />
+                    <p class="typingMessage"></p>
+                    <button id="send">Send</button>
+                </secion>
+
+                <section class="connected-users"></section>
+            </div>
+        </main>
+    </body>
 </html>
