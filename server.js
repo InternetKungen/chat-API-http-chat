@@ -173,6 +173,50 @@ io.on('connection', (socket) => {
         }
     });
 
+    socket.on("delete channel", async (indexNumber) => {
+        try {
+            const response = await fetch('http://localhost:3000/channel');
+            const channels = await response.json(); 
+          
+            let channelsListed = []; // Skapa en tom lista för att lagra index och kanal-ID
+    
+            // Loopa igenom kanalerna och skapa index samt spara kanal-ID i en lista
+            channels.forEach((channel, index) => {
+                if (channel.channelName !== "broadcast") {
+                    channelsListed.push({ index: index + 1, channelId: channel._id });
+                }
+            });
+    
+            // Hitta kanalens ID med hjälp av det angivna indexnumret
+            const channelToDelete = channelsListed.find(channel => channel.index === indexNumber);
+    
+            if (!channelToDelete) {
+                throw new Error("Channel not found");
+            }
+    
+            // Ta bort kanalen från databasen med det identifierade ID:et
+            const deleteResponse = await fetch(`http://localhost:3000/channel/${channelToDelete.channelId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + socket.token
+                }
+            });
+    
+            if (!deleteResponse.ok) {
+                throw new Error("Failed to delete channel");
+            }
+    
+            // Skicka en bekräftelse till klienten att kanalen har tagits bort
+            socket.emit("channel deleted", channelToDelete.index);
+    
+        } catch (error) {
+            console.error("Error deleting channel:", error);
+            // Skicka felmeddelande till klienten om något går fel
+            socket.emit("delete channel error", error.message);
+        }
+    });
+    
     // socket.on("delete channel", async (channelNumber) => {
     //     try {
     //         // Hämta kanalen med motsvarande nummer från databasen eller annan lagringsplats

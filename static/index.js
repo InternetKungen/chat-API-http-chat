@@ -218,10 +218,16 @@ chatMessageInput.addEventListener("keydown", (event) => {
         const channelDescription = params[3];
         // Skicka kanalnamn och beskrivning till servern för att skapa den nya kanalen
         socket.emit("create channel", channelName, channelDescription, channelId); 
+
       } else if (message === "/listchannels") {
         // Skicka kommando till servern för att begära listning av kanaler
         socket.emit("list channels");
-        
+      
+      } else if (message.startsWith("/deletechannel")) {
+          // Extrahera indexnumret från meddelandet
+          const indexNumber = parseInt(message.split(" ")[1]);
+          socket.emit("delete channel", indexNumber);
+
       } else {
       socket.emit("new message", message, channelId); // Skicka meddelandet till servern
       }
@@ -294,11 +300,23 @@ socket.on("not typing", (username) => {
     removeTypingMessage();
 });
 
-  socket.on("channel list", (channels) => {
-    // Skriv ut listan över kanaler
-    channels.forEach((channel, index) => {
-      if (channel.channelName !== "broadcast") {
-        addChatMessage(`${index + 1}. ${channel.channelName}: ${channel.description}`);
-      }
-    });
+socket.on("channel list", (channels) => {
+  // Skriv ut listan över kanaler
+  channels.forEach((channel, index) => {
+    if (channel.channelName !== "broadcast") {
+      addChatMessage(`${index + 1}. ${channel.channelName} - ${channel.description}`);
+    }
+  });
+});
+
+// Hantera eventuell fel vid borttagning av kanal
+socket.on("delete channel error", (errorMessage) => {
+  // Visa felmeddelande för användaren
+  addChatMessage(errorMessage);
+});
+
+// Hantera bekräftelse om att kanalen har tagits bort
+socket.on("channel deleted", (indexNumber) => {
+  // Uppdatera användargränssnittet eller gör någon annan åtgärd efter borttagning av kanal
+  addChatMessage(`Channel ${indexNumber} deleted successfully`);
 });
