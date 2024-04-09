@@ -198,17 +198,35 @@ sendButton.addEventListener("click", () => {
 
 //Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
 chatMessageInput.addEventListener("keydown", (event) => {
-    //Hämta aktuell kanal-id
-    const channelId = channelDropdown.value;
-    // Skickar signal till servern när användaren börjar skriva
-    socket.emit("typing", channelId);
-    if (event.key === "Enter") {
-        event.preventDefault(); // Förhindra standardbeteendet för formuläret
-        const message = chatMessageInput.value;
-        const channelId = channelDropdown.value;
-        socket.emit("new message", message, channelId); // Skicka meddelandet till servern
-        reset(); // Återställ inputfältet
-    }
+  //Hämta aktuell kanal-id
+  const channelId = channelDropdown.value; 
+  // Skickar signal till servern när användaren börjar skriva
+  socket.emit("typing", channelId);
+  if (event.key === "Enter") {
+      event.preventDefault(); // Förhindra standardbeteendet för formuläret
+      const message = chatMessageInput.value;
+      const channelId = channelDropdown.value;
+
+      if (message.startsWith("/broadcast")) {
+        const broadcastMessage = message.substring(11); // Ta bort "/broadcast " från början av meddelandet
+        socket.emit("broadcast message", broadcastMessage); // Skicka meddelandet till servern för sändning
+
+      } else if (message.startsWith("/createchannel")) {
+        // Extrahera kanalnamn och beskrivning från meddelandet
+        const params = message.split('"');
+        const channelName = params[1];
+        const channelDescription = params[3];
+        // Skicka kanalnamn och beskrivning till servern för att skapa den nya kanalen
+        socket.emit("create channel", channelName, channelDescription, channelId); 
+      } else if (message === "/listchannels") {
+        // Skicka kommando till servern för att begära listning av kanaler
+        socket.emit("list channels");
+        
+      } else {
+      socket.emit("new message", message, channelId); // Skicka meddelandet till servern
+      }
+      reset(); // Återställ inputfältet
+  }
 });
 
 chatMessageInput.addEventListener("keyup", () => {
@@ -274,4 +292,13 @@ socket.on("is typing", (username) => {
 socket.on("not typing", (username) => {
     // Hanterar händelsen: någon slutar skriva + tar bort från UI
     removeTypingMessage();
+});
+
+  socket.on("channel list", (channels) => {
+    // Skriv ut listan över kanaler
+    channels.forEach((channel, index) => {
+      if (channel.channelName !== "broadcast") {
+        addChatMessage(`${index + 1}. ${channel.channelName}: ${channel.description}`);
+      }
+    });
 });
