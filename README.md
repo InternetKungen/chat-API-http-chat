@@ -18,12 +18,18 @@ To run the chat client, use the following command:
 npm run dev
 ```
 
+Connect to http://localhost:4000
+
+You'll need to run and point Chat API to a MondoDB host.
+
+Chat API can be found [here](https://github.com/InternetKungen/chat-API_v1)
+
 ## Chat Commands
 
 - /listchannels: Lists channels with _index numbers_.
 - /broadcast: Broadcasts a message to all channels.
-- /join *channel-index-number*: Joins a specific channel using its index number.
-- /deletechannel *channel-index-number*: Deletes a channel specified by its index number.
+- /join _channel-index-number_: Joins a specific channel using its index number.
+- /deletechannel _channel-index-number_: Deletes a channel specified by its index number.
 
 ## Link to Chat API v1
 
