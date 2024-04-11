@@ -159,6 +159,44 @@ async function joinChannel() {
     displayMessages(channelId);
 }
 
+function sendMessage() {
+    const message = chatMessageInput.value;
+    const channelId = channelDropdown.value;
+
+    if (message.startsWith("/broadcast")) {
+    const broadcastMessage = message.substring(11); // Ta bort "/broadcast " från början av meddelandet
+    socket.emit("broadcast message", broadcastMessage); // Skicka meddelandet till servern för sändning
+
+    } else if (message.startsWith("/createchannel")) {
+    // Extrahera kanalnamn och beskrivning från meddelandet
+    const params = message.split('"');
+    const channelName = params[1];
+    const channelDescription = params[3];
+    // Skicka kanalnamn och beskrivning till servern för att skapa den nya kanalen
+    socket.emit("create channel", channelName, channelDescription, channelId); 
+
+    } else if (message === "/listchannels") {
+    // Skicka kommando till servern för att begära listning av kanaler
+    socket.emit("list channels");
+    
+    } else if (message.startsWith("/deletechannel")) {
+        // Extrahera indexnumret från meddelandet
+        const indexNumber = parseInt(message.split(" ")[1]);
+        socket.emit("delete channel", indexNumber);
+
+    }  else if (message.startsWith("/join")) {
+    // Extrahera indexnumret från meddelandet
+    const indexNumber = parseInt(message.split(" ")[1]);
+    const username = usernameElem.value;
+    socket.emit("join channel", indexNumber, username);
+
+    } else {
+    socket.emit("new message", message, channelId); // Skicka meddelandet till servern
+    }
+    reset(); // Återställ inputfältet
+}
+
+
 //EVENT LISTENERS - för olika användarinteraktioner
 
 //Login - join-button
@@ -199,14 +237,7 @@ registerButton.addEventListener("click", () => {
 
 //Chat-area - Send-knapp
 sendButton.addEventListener("click", () => {
-    // Hanterar klickhändelsen på submit-knappen
-    const message = chatMessageInput.value;
-    const channelId = channelDropdown.value;
-    // Skickar det skrivna meddelandet till servern
-    socket.emit("new message", message, channelId);
-
-    // Återställer innehållet i inputfältet för chattmeddelanden
-    reset();
+    sendMessage();
 });
 
 //Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
@@ -217,40 +248,7 @@ chatMessageInput.addEventListener("keydown", (event) => {
   socket.emit("typing", channelId);
   if (event.key === "Enter") {
       event.preventDefault(); // Förhindra standardbeteendet för formuläret
-      const message = chatMessageInput.value;
-      const channelId = channelDropdown.value;
-
-      if (message.startsWith("/broadcast")) {
-        const broadcastMessage = message.substring(11); // Ta bort "/broadcast " från början av meddelandet
-        socket.emit("broadcast message", broadcastMessage); // Skicka meddelandet till servern för sändning
-
-      } else if (message.startsWith("/createchannel")) {
-        // Extrahera kanalnamn och beskrivning från meddelandet
-        const params = message.split('"');
-        const channelName = params[1];
-        const channelDescription = params[3];
-        // Skicka kanalnamn och beskrivning till servern för att skapa den nya kanalen
-        socket.emit("create channel", channelName, channelDescription, channelId); 
-
-      } else if (message === "/listchannels") {
-        // Skicka kommando till servern för att begära listning av kanaler
-        socket.emit("list channels");
-      
-      } else if (message.startsWith("/deletechannel")) {
-          // Extrahera indexnumret från meddelandet
-          const indexNumber = parseInt(message.split(" ")[1]);
-          socket.emit("delete channel", indexNumber);
-
-      }  else if (message.startsWith("/join")) {
-        // Extrahera indexnumret från meddelandet
-        const indexNumber = parseInt(message.split(" ")[1]);
-        const username = usernameElem.value;
-        socket.emit("join channel", indexNumber, username);
-
-      } else {
-      socket.emit("new message", message, channelId); // Skicka meddelandet till servern
-      }
-      reset(); // Återställ inputfältet
+      sendMessage();
   }
 });
 
