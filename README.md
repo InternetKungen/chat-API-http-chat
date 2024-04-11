@@ -20,7 +20,7 @@ npm run dev
 
 Connect to http://localhost:4000
 
-You'll need to run and point Chat API to a MondoDB host.
+You'll need to run and point Chat API to a MongoDB host.
 
 Chat API can be found [here](https://github.com/InternetKungen/chat-API_v1)
 
