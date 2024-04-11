@@ -80,6 +80,16 @@ body {
     padding: 0.5rem 1rem;
     margin-top: 2px;
     margin-bottom: 0px;
+    animation: fade-in 0.2s ease-in 1;
+}
+
+@keyframes fade-in {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .chat-area > p:nth-child(even) {
@@ -130,6 +140,7 @@ body {
     border: 2px solid var(--border-color);
     border-radius: 10px;
     flex-direction: column;
+    animation: fade-in 0.2s ease-in 1;
 }
 
 #password-input,
