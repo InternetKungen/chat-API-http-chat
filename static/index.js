@@ -1,22 +1,4 @@
 let socket = io();
-// let token;
-
-// //AUTHENTICATE - utförs nu i server.js
-// async function authenticate(username, password) {
-//     const response = await fetch('http://localhost:3000/auth/login', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({
-//             username: username,
-//             password: password
-//         })
-//     });
-
-//     const data = await response.json();
-//     token = data.token;
-// }
 
 //LOGIN - användarnamn, password, channel och login-knapp
 const usernameElem = document.querySelector("#username-input");

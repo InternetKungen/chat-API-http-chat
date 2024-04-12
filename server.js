@@ -1,17 +1,3 @@
-//server.js
-// import express from 'express';
-// import http from 'http';
-// import { Server } from 'socket.io';
-// import fetch from 'node-fetch';
-
-// const app = express();
-// const server = http.createServer(app);
-// const io = new Server(server);
-// const port = process.env.PORT || 4000;
-
-// app.use(express.static(__dirname));
-// app.use(express.static(__dirname + '/static'));
-
 // Server.js
 import express from 'express';
 import http from 'http';
@@ -264,19 +250,6 @@ io.on('connection', (socket) => {
             socket.emit("join channel error", error.message);
         }
     });
-    
-    // socket.on("delete channel", async (channelNumber) => {
-    //     try {
-    //         // Hämta kanalen med motsvarande nummer från databasen eller annan lagringsplats
-    //         const channelToDelete = await fetchChannelByNumberFromDatabase(channelNumber); // Ersätt med riktig logik
-    //         // Ta bort kanalen från databasen eller annan lagringsplats
-    //         await deleteChannelFromDatabase(channelToDelete); // Ersätt med riktig logik
-    //         // Skicka meddelande till alla anslutna klienter att kanalen har tagits bort
-    //         io.emit("channel deleted", channelToDelete.channelName);
-    //     } catch (error) {
-    //         console.error("Error deleting channel:", error);
-    //         // Hantera eventuella fel här
-    //     }
 
     socket.on("typing", (channelId) => {
         // Skicka "is typing"-meddelandet endast till användare i samma kanal
