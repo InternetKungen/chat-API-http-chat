@@ -30,6 +30,7 @@ Chat API can be found [here](https://github.com/InternetKungen/chat-API_v1)
 - /broadcast: Broadcasts a message to all channels.
 - /join _channel-index-number_: Joins a specific channel using its index number.
 - /deletechannel _channel-index-number_: Deletes a channel specified by its index number.
+- /createchannel _"channel name"_ _"channel description"_: Creates a new channel with a name and description.
 
 ## Link to Chat API v1
 
