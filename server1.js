@@ -1,3 +1,4 @@
+// Server.js
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
@@ -5,51 +6,40 @@ import fetch from 'node-fetch';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-// Define filename and dirname using Node.js module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Create Express app
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 const port = process.env.PORT || 4000;
 
-// Define the path for static files
 const staticPath = path.join(__dirname, 'static');
 
-// Serve static files
 app.use(express.static(staticPath));
 
-// Route to serve index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(staticPath, 'index.html'));
 });
 
-// Route to serve style.css
 app.get('/style.css', (req, res) => {
   res.setHeader('Content-Type', 'text/css');
   res.sendFile(path.join(staticPath, 'style.css'));
 });
 
-// Array to keep track of connected users
 let connectedUsers = [];
 
-// Function to send updated user list to a client
 function sendUserListToClient(socket) {
   socket.emit('update users', connectedUsers);
 }
 
-// Function to broadcast updated user list to all clients
 function sendUpdatedUserListToAll() {
   io.emit('update users', connectedUsers);
 }
 
-// Handle socket connections
 io.on('connection', (socket) => {
-  sendUserListToClient(socket); // Send list of connected users to the newly connected client
+  sendUserListToClient(socket);
 
-  // Register a new user
   socket.on('register', async (username, password) => {
     const response = await fetch('http://localhost:3000/auth/register', {
       method: 'POST',
@@ -64,7 +54,6 @@ io.on('connection', (socket) => {
     console.log(await response.json());
   });
 
-  // Join a channel
   socket.on('join', async (username, password, channelId) => {
     console.log(username + ' connected');
     socket.username = username;
@@ -94,7 +83,6 @@ io.on('connection', (socket) => {
     socket.join(channelId);
   });
 
-  // Handle broadcasting messages
   socket.on('broadcast message', async (message) => {
     const composedMessage = `${socket.username}: ${message}`;
     console.log(composedMessage);
@@ -112,7 +100,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Handle sending new messages
+  //channel - send message
   socket.on('new message', async (message, channelId) => {
     const timestamp = new Date().toLocaleTimeString();
     const composedMessage = `[${timestamp}] ${socket.username}: ${message}`;
@@ -131,7 +119,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Handle creating a new channel
+  //create channel
   socket.on('create channel', async (channelName, channelDescription, channelId) => {
     // Här kan du implementera logiken för att skapa den nya kanalen med namn och beskrivning
     console.log(`Skapar ny kanal med namn: ${channelName} och beskrivning: ${channelDescription}`);
@@ -172,7 +160,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Handle listing channels
+  // Lyssna efter begäran om att listas kanaler
   socket.on('list channels', async () => {
     try {
       const response = await fetch('http://localhost:3000/channel');
@@ -191,56 +179,89 @@ io.on('connection', (socket) => {
       const channels = await response.json();
 
       let channelsListed = []; // Skapa en tom lista för att lagra index och kanal-ID
-      for (let i = 0; i < channels.length; i++) {
-        channelsListed.push([i, channels[i].channelId]);
-      }
 
-      // Ta bort kanalen baserat på indexet
-      const removedChannel = channelsListed.splice(indexNumber, 1)[0];
-      const channelId = removedChannel[1];
-
-      // Skicka meddelande till kanalen att den har tagits bort
-      io.to(channelId).emit(
-        'send message',
-        `Kanal ${channels[channelId].channelName} har tagits bort.`
-      );
-
-      // Skicka meddelandet till API:et
-      const deleteResponse = await fetch(`http://localhost:3000/channel/${channelId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + socket.token,
-        },
+      // Loopa igenom kanalerna och skapa index samt spara kanal-ID i en lista
+      channels.forEach((channel, index) => {
+        if (channel.channelName !== 'broadcast') {
+          channelsListed.push({ index: index + 1, channelId: channel._id });
+        }
       });
 
-      // Kontrollera om borttagningen av kanalen lyckades
-      if (deleteResponse.ok) {
-        console.log(`Kanal ${channels[channelId].channelName} har tagits bort.`);
-      } else {
-        console.error('Fel vid borttagning av kanal:', deleteResponse.statusText);
-        // Hantera fel här
+      // Hitta kanalens ID med hjälp av det angivna indexnumret
+      const channelToDelete = channelsListed.find((channel) => channel.index === indexNumber);
+
+      if (!channelToDelete) {
+        throw new Error('Channel not found');
       }
+
+      // Ta bort kanalen från databasen med det identifierade ID:et
+      const deleteResponse = await fetch(
+        `http://localhost:3000/channel/${channelToDelete.channelId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + socket.token,
+          },
+        }
+      );
+
+      if (!deleteResponse.ok) {
+        throw new Error('Failed to delete channel');
+      }
+
+      // Skicka en bekräftelse till klienten att kanalen har tagits bort
+      socket.emit('channel deleted', channelToDelete.index);
     } catch (error) {
-      console.error('Något gick fel:', error);
-      // Hantera fel här
+      console.error('Error deleting channel:', error);
+      // Skicka felmeddelande till klienten om något går fel
+      socket.emit('delete channel error', error.message);
     }
   });
-  /* ---------------------------------------------------------- */
-  // Handle user presence and status
-  socket.on('user presence', (username) => {
-    socket.broadcast.emit('user presence', username);
+
+  socket.on('join channel', async (indexNumber) => {
+    try {
+      const response = await fetch('http://localhost:3000/channel');
+      const channels = await response.json();
+
+      let channelsListed = []; // Skapa en tom lista för att lagra index och kanal-ID
+
+      // Loopa igenom kanalerna och skapa index samt spara kanal-ID i en lista
+      channels.forEach((channel, index) => {
+        if (channel.channelName !== 'broadcast') {
+          channelsListed.push({ index: index + 1, channelId: channel._id });
+        }
+      });
+
+      // Hitta kanalens ID med hjälp av det angivna indexnumret
+      const channelToJoin = channelsListed.find((channel) => channel.index === indexNumber);
+
+      if (!channelToJoin) {
+        throw new Error('Channel not found');
+      }
+
+      socket.join(channelToJoin.channelId);
+
+      // Skicka meddelandet till klienten för att uppdatera kanalen
+      socket.emit('display messages', channelToJoin.channelId);
+      // Uppdatera värdet för aktuell kanal i dropdown-menyn
+      socket.emit('update channel dropdown', channelToJoin.channelId);
+    } catch (error) {
+      console.error('Error joining channel:', error);
+      // Skicka felmeddelande till klienten om något går fel
+      socket.emit('join channel error', error.message);
+    }
   });
 
   socket.on('typing', (channelId) => {
+    // Skicka "is typing"-meddelandet endast till användare i samma kanal
     socket.to(channelId).emit('is typing', socket.username);
   });
 
-  socket.on('stop typing', (username) => {
-    socket.broadcast.emit('not typing', username);
+  socket.on('stop typing', () => {
+    socket.broadcast.emit('not typing');
   });
 
-  // Handle disconnections
   socket.on('disconnect', () => {
     if (socket.username) {
       console.log(socket.username + ' disconnected');
@@ -251,7 +272,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// Start the server
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

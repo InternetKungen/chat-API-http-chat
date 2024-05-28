@@ -1,39 +1,34 @@
 let socket = io();
 
-// LOGIN - username, password, channel, and login button
+//LOGIN - användarnamn, password, channel och login-knapp
 const usernameElem = document.querySelector('#username-input');
 const passwordElem = document.querySelector('#password-input');
 const channelDropdown = document.querySelector('.channel-dropdown');
 const submitButton = document.querySelector('#login-submit');
 const registerSectionButton = document.querySelector('#register-section-button');
 
-// REGISTER - username, password, and register button
+//REGISTER - användarnamn, password, channel och register-knapp
 const registerUsernameElem = document.querySelector('#register-username-input');
 const registerPasswordElem = document.querySelector('#register-password-input');
-const registerButton = document.querySelector('#register_submit');
+const registerButton = document.querySelector('#register_submit'); // Fix the selector here
 const registerSection = document.querySelector('.register');
 
-// CHAT MESSAGE - input area for writing messages
+//CHAT-MESSAGE - där man skriver in sitt meddelande
 const chatMessageInput = document.querySelector('#chat-message');
 const sendButton = document.querySelector('#send');
-/* ------------------------------------------- */
-// New code
-const privateMessageInput = document.querySelector('#private-message');
-const privateMessageRecipient = document.querySelector('#private-recipient');
-const sendPrivateButton = document.querySelector('#send-private');
-/* ------------------------------------------- */
-// LOGIN section and CHAT section, used for UI transitions
+
+//LOGIN-section och CHAT-section, används vid showChat
 const login = document.querySelector('.login');
 const chat = document.querySelector('.chat');
 
-// CHAT AREA
+//CHAT-AREA
 let chatArea = document.querySelector('.chat-area');
 
-// CONNECTED USERS
+//CONNECTED USERS
 const connectedUsersElem = document.querySelector('.connected-users');
 
-// FUNCTIONALITY
-// Function to fetch channels from API and display them in the client
+//FUNKTIONER
+// Funktion för att hämta kanaler från API och visa dem i klienten
 async function fetchAndDisplayChannels() {
   try {
     const response = await fetch('http://localhost:3000/channel');
@@ -54,10 +49,10 @@ async function fetchAndDisplayChannels() {
   }
 }
 
-// Call the function to fetch and display channels when the page loads
+// Anropa funktionen för att hämta och visa kanaler när sidan laddas
 document.addEventListener('DOMContentLoaded', fetchAndDisplayChannels);
 
-// Display existing messages in the channel
+//Visa befintliga meddelanden i kanalen
 async function displayMessages(channelId) {
   try {
     const response = await fetch(`http://localhost:3000/channel/${channelId}`, {
@@ -82,61 +77,60 @@ async function displayMessages(channelId) {
   }
 }
 
-// Show the register section
 function showRegister() {
   console.log('showRegister function called');
-  registerSection.classList.remove('hide');
+  registerSection.classList.remove('hide'); // Remove the hide class
   registerSection.classList.add('show');
   login.classList.add('hide');
   chat.classList.add('hide');
 }
 
-// Hide login and show chat section of the interface
+//Dölj inloggning och visar chatt-delen av gränsnittet
 function showChat() {
   login.classList.add('hide');
   chat.classList.add('show');
 }
 
-// Show login section
 function showLogin() {
   login.classList.remove('hide');
   registerSection.remove('show');
   registerSection.add('hide');
 }
 
-// Function to add a typing message
+//När någon skriver - visa "user is typing.."
 function addTypingMessage(username) {
+  // Lägger till meddelande om att användaren skriver
   const typingElem = document.querySelector('.typingMessage');
   typingElem.innerHTML = username + ' is typing';
 }
 
-// Function to remove a typing message
+//När någon slutar skriva - ta bort "user is typing.."
 function removeTypingMessage() {
+  // Tar bort meddelandet om att användaren skriver efter 1 sek
   const typingElem = document.querySelector('.typingMessage');
   setTimeout(() => {
     typingElem.innerHTML = ' ';
   }, 1000);
 }
 
-// Scroll to the bottom of the chat area
 function scrollToBottom() {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-// Function to add a chat message
 function addChatMessage(message) {
+  // Lägger till ett nytt chattmeddelande
   let chatMessage = document.createElement('p');
   chatMessage.innerHTML = message;
   chatArea.append(chatMessage);
   scrollToBottom();
 }
 
-// Function to reset the chat message input field
 function reset() {
+  // Återställer innehållet i chattmeddelande-inputfältet
   chatMessageInput.value = '';
 }
 
-// Join a channel when logging in
+//När man ansluter till en kanal - joining channel
 async function joinChannel() {
   const username = usernameElem.value;
   const password = passwordElem.value;
@@ -147,59 +141,69 @@ async function joinChannel() {
   displayMessages(channelId);
 }
 
-// Send a message
 function sendMessage() {
   const message = chatMessageInput.value;
   const channelId = channelDropdown.value;
 
-  socket.emit('new message', message, channelId);
-  reset();
+  if (message.startsWith('/broadcast')) {
+    const broadcastMessage = message.substring(11); // Ta bort "/broadcast " från början av meddelandet
+    socket.emit('broadcast message', broadcastMessage); // Skicka meddelandet till servern för sändning
+  } else if (message.startsWith('/createchannel')) {
+    // Extrahera kanalnamn och beskrivning från meddelandet
+    const params = message.split('"');
+    const channelName = params[1];
+    const channelDescription = params[3];
+    // Skicka kanalnamn och beskrivning till servern för att skapa den nya kanalen
+    socket.emit('create channel', channelName, channelDescription, channelId);
+  } else if (message === '/listchannels') {
+    // Skicka kommando till servern för att begära listning av kanaler
+    socket.emit('list channels');
+  } else if (message.startsWith('/deletechannel')) {
+    // Extrahera indexnumret från meddelandet
+    const indexNumber = parseInt(message.split(' ')[1]);
+    socket.emit('delete channel', indexNumber);
+  } else if (message.startsWith('/join')) {
+    // Extrahera indexnumret från meddelandet
+    const indexNumber = parseInt(message.split(' ')[1]);
+    const username = usernameElem.value;
+    socket.emit('join channel', indexNumber, username);
+  } else {
+    socket.emit('new message', message, channelId); // Skicka meddelandet till servern
+  }
+  reset(); // Återställ inputfältet
 }
 
-/* ------------------------------------------- */
-// Send a private message
-function sendPrivateMessage() {
-  const message = privateMessageInput.value;
-  const recipient = privateMessageRecipient.value;
+//EVENT LISTENERS - för olika användarinteraktioner
 
-  socket.emit('privateMessage', { to: recipient, message });
-  addChatMessage(`You (to ${recipient}): ${message}`);
-  privateMessageInput.value = '';
-}
-/* ------------------------------------------- */
-
-// EVENT LISTENERS for user interactions
-
-// Login - join button
+//Login - join-button
 submitButton.addEventListener('click', async () => {
   joinChannel();
   showChat();
 });
 
-// Enter key works as join if focus is in username field
+//Enter-knapp fungerar som join - om markering är i username
 usernameElem.addEventListener('keydown', async (event) => {
   if (event.key === 'Enter') {
-    event.preventDefault();
+    event.preventDefault(); // Förhindra standardbeteendet för formuläret
     joinChannel();
     showChat();
   }
 });
 
-// Enter key works as join if focus is in password field
+//Enter-knapp fungerar som join - om markering är i password
 passwordElem.addEventListener('keydown', async (event) => {
   if (event.key === 'Enter') {
-    event.preventDefault();
+    event.preventDefault(); // Förhindra standardbeteendet för formuläret
     joinChannel();
     showChat();
   }
 });
 
-// Show register menu when Register button is clicked
+//Login - Register-button - show register menu
 registerSectionButton.addEventListener('click', () => {
   showRegister();
 });
 
-// Register a user
 registerButton.addEventListener('click', () => {
   const username = registerUsernameElem.value;
   const password = registerPasswordElem.value;
@@ -207,64 +211,30 @@ registerButton.addEventListener('click', () => {
   showLogin();
 });
 
-// Send message when Send button is clicked
+//Chat-area - Send-knapp
 sendButton.addEventListener('click', () => {
   sendMessage();
 });
 
-// Send message when Enter key is pressed in chat message input field
+//Chat-area - Enter-knapp fungerar som send knapp - om markering är i chat-message input
 chatMessageInput.addEventListener('keydown', (event) => {
-  const channelId = channelDropdown.value; // get channel id
+  //Hämta aktuell kanal-id
+  const channelId = channelDropdown.value;
+  // Skickar signal till servern när användaren börjar skriva
   socket.emit('typing', channelId);
   if (event.key === 'Enter') {
-    event.preventDefault();
+    event.preventDefault(); // Förhindra standardbeteendet för formuläret
     sendMessage();
   }
 });
 
-// Stop typing when user releases Enter key
 chatMessageInput.addEventListener('keyup', () => {
+  // Skickar signal till servern när användaren slutar skriva
   socket.emit('stop typing');
 });
 
-/* ------------------------------------------- */
-// Send private message
-sendPrivateButton.addEventListener('click', sendPrivateMessage);
+// Socket.IO prenumererar på händelser från servern
 
-// Enter key sends a private message if focus is in private message input field
-privateMessageInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    sendPrivateMessage();
-  }
-});
-
-// SOCKET.IO EVENTS
-
-// Display message
-socket.on('send message', (message) => {
-  addChatMessage(message);
-});
-
-// Update users
-socket.on('update users', (users) => {
-  connectedUsersElem.innerHTML = '';
-  users.forEach((user) => {
-    const userElem = document.createElement('p');
-    userElem.textContent = user;
-    connectedUsersElem.appendChild(userElem);
-  });
-});
-
-// Private message
-socket.on('privateMessage', (data) => {
-  const { from, message } = data;
-  addChatMessage(`${from} (private): ${message}`);
-});
-/* ------------------------------------------- */
-
-// Handle events received from server via Socket.IO
-/* ---------------------------------------------------------- */
 // Skapa en promise som löser när token mottas
 let tokenReceived = new Promise((resolve) => {
   socket.on('token', (token) => {
@@ -274,51 +244,57 @@ let tokenReceived = new Promise((resolve) => {
   });
 });
 
-/* ---------------------------------------------------------- */
-
-// Update token when received from server
 socket.on('token', (token) => {
-  console.log(socket.token);
+  // Spara token i klientens minne för framtida användning
   socket.token = token;
+  console.log(socket.token);
 });
 
-// Handle user join event
+// Socket.IO prenumererar på händelser från servern
 socket.on('user joined', (username) => {
+  // Hanterar händelsen: ny användare ansluter + lägger till ett meddelande i chatten
   const chatMessage = username + ' joined the chat';
   addChatMessage(chatMessage);
+  // Skapa ett nytt <p>-element för det anslutna användarens namn
   const userParagraph = document.createElement('p');
+  // Ange texten för <p>-elementet till det anslutna användarens namn
   userParagraph.textContent = username;
+  // Lägg till det skapade <p>-elementet i sektionen för anslutna användare
   connectedUsersElem.appendChild(userParagraph);
 });
 
-// Handle user disconnect event
 socket.on('user disconnected', (username) => {
+  // Hanterar händelsen: ny användare ansluter + lägger till ett meddelande i chatten
   const chatMessage = username + ' disconnected from the chat';
   addChatMessage(chatMessage);
+  // Loopa igenom alla <p>-element inom sektionen för anslutna användare
   connectedUsersElem.querySelectorAll('p').forEach((paragraph) => {
+    // Om texten i det aktuella <p>-elementet matchar användarnamnet som kopplar från
     if (paragraph.textContent === username) {
+      // Ta bort det aktuella <p>-elementet från DOM-trädet
       paragraph.remove();
     }
   });
 });
 
-// Handle received messages
+//skicka medelande
 socket.on('send message', (message) => {
+  // Hanterar händelsen: nytt meddelande tas emot + lägger till det i chatten
   addChatMessage(message);
 });
 
-// Handle typing event
 socket.on('is typing', (username) => {
+  // Hanterar händelsen: någon börjar skriva + visar i UI
   addTypingMessage(username);
 });
 
-// Handle stop typing event
-socket.on('not typing', () => {
+socket.on('not typing', (username) => {
+  // Hanterar händelsen: någon slutar skriva + tar bort från UI
   removeTypingMessage();
 });
 
-// Handle channel list event
 socket.on('channel list', (channels) => {
+  // Skriv ut listan över kanaler
   channels.forEach((channel, index) => {
     if (channel.channelName !== 'broadcast') {
       addChatMessage(`${index + 1}. ${channel.channelName} - ${channel.description}`);
@@ -326,56 +302,24 @@ socket.on('channel list', (channels) => {
   });
 });
 
-// Handle delete channel error event
+// Hantera eventuell fel vid borttagning av kanal
 socket.on('delete channel error', (errorMessage) => {
+  // Visa felmeddelande för användaren
   addChatMessage(errorMessage);
 });
 
-// Handle channel deleted event
+// Hantera bekräftelse om att kanalen har tagits bort
 socket.on('channel deleted', (indexNumber) => {
+  // Uppdatera användargränssnittet eller gör någon annan åtgärd efter borttagning av kanal
   addChatMessage(`Channel ${indexNumber} deleted successfully`);
 });
 
-// Handle display messages event
 socket.on('display messages', (channelId) => {
   displayMessages(channelId);
 });
 
-// Handle update channel dropdown event
 socket.on('update channel dropdown', (channelId) => {
   channelDropdown.value = channelId;
 });
 
-/* ---------------------------------------------------------- */
-
-/* User Presence and Status */
-
-// Function to update user presence status
-function updateUserPresenceStatus(users) {
-  connectedUsersElem.innerHTML = ''; // Clear the connected users list
-  users.forEach((user) => {
-    const userParagraph = document.createElement('p');
-    userParagraph.textContent = user.username + (user.typing ? ' is typing' : '');
-    connectedUsersElem.appendChild(userParagraph);
-  });
-}
-
-// Socket.IO subscription for user presence status
-socket.on('user presence status', (users) => {
-  updateUserPresenceStatus(users);
-});
-
-// Function to emit typing event
-function emitTypingEvent() {
-  const channelId = channelDropdown.value;
-  socket.emit('typing', channelId);
-}
-
-// Function to emit stop typing event
-function emitStopTypingEvent() {
-  socket.emit('stop typing');
-}
-
-// Event listeners for typing and stop typing events
-chatMessageInput.addEventListener('input', emitTypingEvent);
-chatMessageInput.addEventListener('blur', emitStopTypingEvent);
+/* User Presence and Status functionality */

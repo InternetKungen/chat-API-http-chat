@@ -1,51 +1,86 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Socket.IO chat</title>
-        <link rel="stylesheet" href="style.css" />
-        <script src="/socket.io/socket.io.js" defer></script>
-        <script src="index.js" defer></script>
-    </head>
-    <body>
-        <main class="wrapper">
-            <!--LOGIN-->
-            <section class="login">
-                <input type="text" name="" placeholder="Användarnamn" id="username-input" class="login__input" />
-                <input type="password" name="" placeholder="Lösenord" id="password-input" class="login__input" />
+  <head>
+    <title>Socket.IO chat</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="wrapper">
+      <!--LOGIN-->
+      <section class="login">
+        <h2>Login</h2>
+        <input type="text" placeholder="Username" id="username-input" class="login__input" />
+        <input type="password" placeholder="Password" id="password-input" class="login__input" />
 
-                <section class="channels">
-                    <p>Channels:</p>
-                    <select class="channel-dropdown">
-                        <!-- Kanaler läggs till här dynamiskt från JavaScript -->
-                    </select>
-                </section>
+        <h3>Channels:</h3>
+        <select class="channel-dropdown"></select>
 
-                <button id="login-submit" class="login__button">Join</button>
-                <button id="register-section-button">Register</button>
-            </section>
+        <button id="login-submit" class="login__button">Login</button>
+        <button id="register-section-button">Register</button>
+      </section>
 
-            <!--REGISTER SECTION-->
+      <!--REGISTER SECTION-->
+      <section class="register hide">
+        <h2>Register</h2>
+        <input
+          type="text"
+          class="register_input"
+          placeholder="Username"
+          id="register-username-input"
+        />
+        <input
+          type="password"
+          class="register_input"
+          placeholder="Password"
+          id="register-password-input"
+        />
+        <button id="register_submit" class="register_button">Register</button>
+      </section>
 
-            <section class="register hide">
-                <section class="registerWrapper">
-                    <input type="text" class="register_input" placeholder="Användarnamn" id="register-username-input" />
-                    <input type="password" class="register_input" placeholder="Lösenord" id="register-password-input" />
-                    <button id="register_submit" class="register_button">Register</button>
-                </section>
-            </section>
+      <!--CHAT SECTION-->
+      <section class="chat hide">
+        <div class="chat-area"></div>
 
-            <!--CHAT SECTION-->
-            <div class="chat hide">
-                <section class="chat-area"></section>
+        <section class="submit-message-area">
+          <div class="typingMessage"></div>
 
-                <secion class="submit-message-area">
-                    <input id="chat-message" autocomplete="off" />
-                    <p class="typingMessage"></p>
-                    <button id="send">Send</button>
-                </secion>
+          <div class="input-div">
+            <input
+              type="text"
+              id="chat-message"
+              autocomplete="off"
+              placeholder="Type your message"
+            />
+            <button id="send">Send</button>
+          </div>
 
-                <section class="connected-users"></section>
-            </div>
-        </main>
-    </body>
+          <!-- PRIVATE MESSAGE SECTION -->
+          <div class="input-div">
+            <input
+              type="text"
+              id="private-recipient"
+              autocomplete="off"
+              placeholder="Recipient Username"
+            />
+            <input
+              type="text"
+              id="private-message"
+              autocomplete="off"
+              placeholder="Private message"
+            />
+            <button id="send-private">Send</button>
+          </div>
+
+          <!-- USERS ONLINE SECTION -->
+          <div class="users-online">
+            <p>Users online: &nbsp;</p>
+            <div class="connected-users"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/index.js"></script>
+  </body>
 </html>
