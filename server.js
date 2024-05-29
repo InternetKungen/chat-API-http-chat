@@ -115,10 +115,10 @@ io.on('connection', (socket) => {
   // Handle sending new messages
   socket.on('new message', async (message, channelId) => {
     const timestamp = new Date().toLocaleTimeString();
-    const composedMessage = `[${timestamp}] ${socket.username}: ${message}`;
-    io.to(channelId).emit('send message', composedMessage);
+    const composedMessage = `[${timestamp}] ${socket.username}: ${message}`; // message with timestamp and username
+    io.to(channelId).emit('send message', composedMessage); // broadcast the formatted message to all clients in the specified channel
 
-    // Skicka meddelandet till API:et
+    // Send the message to the API
     await fetch(`http://localhost:3000/channel/${channelId}`, {
       method: 'POST',
       headers: {
@@ -126,7 +126,7 @@ io.on('connection', (socket) => {
         Authorization: 'Bearer ' + socket.token,
       },
       body: JSON.stringify({
-        message: message,
+        message: message, // Include the original message text in the request body
       }),
     });
   });
@@ -228,9 +228,9 @@ io.on('connection', (socket) => {
   });
   /* ---------------------------------------------------------- */
   // Handle user presence and status
-  socket.on('user presence', (username) => {
+  /*   socket.on('user presence', (username) => {
     socket.broadcast.emit('user presence', username);
-  });
+  }); */
 
   socket.on('typing', (channelId) => {
     socket.to(channelId).emit('is typing', socket.username);

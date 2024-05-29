@@ -131,11 +131,6 @@ function addChatMessage(message) {
   scrollToBottom();
 }
 
-// Function to reset the chat message input field
-function reset() {
-  chatMessageInput.value = '';
-}
-
 // Join a channel when logging in
 async function joinChannel() {
   const username = usernameElem.value;
@@ -149,11 +144,11 @@ async function joinChannel() {
 
 // Send a message
 function sendMessage() {
-  const message = chatMessageInput.value;
-  const channelId = channelDropdown.value;
+  const message = chatMessageInput.value; // message input from the user
+  const channelId = channelDropdown.value; // selected channel ID
 
-  socket.emit('new message', message, channelId);
-  reset();
+  socket.emit('new message', message, channelId); // Emit the 'new message' event to the server with the message and channel ID
+  chatMessageInput.value = '';
 }
 
 /* ------------------------------------------- */
@@ -164,6 +159,7 @@ function sendPrivateMessage() {
 
   socket.emit('privateMessage', { to: recipient, message });
   addChatMessage(`You (to ${recipient}): ${message}`);
+  privateMessageRecipient.value = '';
   privateMessageInput.value = '';
 }
 /* ------------------------------------------- */
@@ -303,9 +299,9 @@ socket.on('user disconnected', (username) => {
 });
 
 // Handle received messages
-socket.on('send message', (message) => {
+/* socket.on('send message', (message) => {
   addChatMessage(message);
-});
+}); */
 
 // Handle typing event
 socket.on('is typing', (username) => {
@@ -361,9 +357,9 @@ function updateUserPresenceStatus(users) {
 }
 
 // Socket.IO subscription for user presence status
-socket.on('user presence status', (users) => {
+/* socket.on('user presence status', (users) => {
   updateUserPresenceStatus(users);
-});
+}); */
 
 // Function to emit typing event
 function emitTypingEvent() {

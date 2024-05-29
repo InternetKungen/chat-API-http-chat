@@ -321,5 +321,3 @@ socket.on('display messages', (channelId) => {
 socket.on('update channel dropdown', (channelId) => {
   channelDropdown.value = channelId;
 });
-
-/* User Presence and Status functionality */
